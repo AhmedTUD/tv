@@ -25,19 +25,39 @@ export default function App() {
     const initData = async () => {
       setIsLoading(true);
       
-      // 1. Try to pull latest from cloud if connected
-      if (db.getIsConnected()) {
-        await db.pullFromCloud();
-      }
-
-      // 2. Load whatever is in local storage (now updated)
+      // 1. Load local data first
       setFields(db.getFields());
       setModels(db.getModels());
+      
+      // 2. Try to pull latest from cloud if connected
+      if (db.getIsConnected()) {
+        const synced = await db.pullFromCloud();
+        if (synced) {
+          // Reload data after cloud sync
+          setFields(db.getFields());
+          setModels(db.getModels());
+          console.log('✅ Data synced from cloud');
+        }
+      }
       
       setIsLoading(false);
     };
 
     initData();
+
+    // Auto-sync every 30 seconds if connected
+    const syncInterval = setInterval(async () => {
+      if (db.getIsConnected() && !isLoading) {
+        const synced = await db.pullFromCloud();
+        if (synced) {
+          setFields(db.getFields());
+          setModels(db.getModels());
+          console.log('🔄 Auto-synced from cloud');
+        }
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(syncInterval);
   }, []);
 
   // Wrappers to update state AND database
@@ -104,7 +124,26 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            {db.getIsConnected() && (
+              <button 
+                onClick={async () => {
+                  const synced = await db.pullFromCloud();
+                  if (synced) {
+                    setFields(db.getFields());
+                    setModels(db.getModels());
+                    alert('✅ ' + t('dataUpdatedFromCloud'));
+                  } else {
+                    alert('⚠️ ' + t('noDataInCloud'));
+                  }
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-bold transition-all duration-300 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                title={t('updateFromCloud')}
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span className="hidden lg:inline">{t('updateFromCloud')}</span>
+              </button>
+            )}
             <LanguageSwitcher currentLanguage={language} onLanguageChange={setLanguage} />
             <button 
               onClick={() => setView('admin')}

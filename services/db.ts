@@ -128,7 +128,7 @@ class DatabaseService {
       // Fetch the single JSON blob from 'app_data' table, row ID 1
       const { data, error } = await this.supabase
         .from('app_data')
-        .select('payload')
+        .select('payload, updated_at')
         .eq('id', 1)
         .single();
 
@@ -143,10 +143,21 @@ class DatabaseService {
       if (data && data.payload) {
         const cloudData = data.payload;
         
-        // Update local storage if cloud data exists
-        if (cloudData.fields) localStorage.setItem(FIELDS_KEY, JSON.stringify(cloudData.fields));
-        if (cloudData.models) localStorage.setItem(MODELS_KEY, JSON.stringify(cloudData.models));
-        return true;
+        // Check if cloud data is newer than local
+        const lastSync = localStorage.getItem('last_sync_time');
+        const cloudTime = data.updated_at || cloudData.last_updated;
+        
+        if (!lastSync || (cloudTime && new Date(cloudTime) > new Date(lastSync))) {
+          // Update local storage if cloud data exists and is newer
+          if (cloudData.fields) localStorage.setItem(FIELDS_KEY, JSON.stringify(cloudData.fields));
+          if (cloudData.models) localStorage.setItem(MODELS_KEY, JSON.stringify(cloudData.models));
+          localStorage.setItem('last_sync_time', new Date().toISOString());
+          console.log('📥 Pulled newer data from cloud');
+          return true;
+        } else {
+          console.log('✓ Local data is up to date');
+          return false;
+        }
       }
     } catch (e) {
       console.error("Sync pull failed", e);
@@ -170,6 +181,9 @@ class DatabaseService {
         .upsert({ id: 1, payload: payload }, { onConflict: 'id' });
 
       if (error) throw error;
+      
+      // Update last sync time
+      localStorage.setItem('last_sync_time', new Date().toISOString());
       console.log("✅ Data synced to cloud successfully");
     } catch (e: any) {
       console.error("❌ Cloud sync push failed:", e.message);
