@@ -90,7 +90,34 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
   };
 
   // --- DB Connection Handler ---
-  const handleConnectDb = () => {
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleTestConnection = async () => {
+    if (!dbConfig.url || !dbConfig.key) {
+      alert(t('enterPassword'));
+      return;
+    }
+
+    setTestingConnection(true);
+    setConnectionTestResult(null);
+
+    // Save config first
+    db.saveConfig(dbConfig.url, dbConfig.key);
+    
+    // Test the connection
+    const result = await db.testConnection();
+    setConnectionTestResult(result);
+    setTestingConnection(false);
+
+    if (result.success) {
+      setIsConnected(true);
+      await db.pushToCloud(); // Initial sync
+      onDataImported();
+    }
+  };
+
+  const handleConnectDb = async () => {
     if (!dbConfig.url || !dbConfig.key) {
       alert("الرجاء إدخال البيانات المطلوبة");
       return;
@@ -107,8 +134,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
     setIsConnected(connected);
     
     if (connected) {
-      alert("تم حفظ إعدادات الاتصال بنجاح. سيتم مزامنة البيانات تلقائياً.");
-      onDataImported(); // Trigger a reload/sync
+      // Test connection and setup
+      const result = await db.testConnection();
+      if (result.success) {
+        alert("✅ تم الاتصال بنجاح! جاري مزامنة البيانات...");
+        await db.pushToCloud();
+        onDataImported();
+      } else {
+        alert("⚠️ " + result.message);
+      }
     } else {
       alert("فشل الاتصال. تأكد من صحة الرابط والمفتاح.");
     }
@@ -119,7 +153,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
       db.disconnect();
       setIsConnected(false);
       setDbConfig({ url: '', key: '' });
+      setConnectionTestResult(null);
     }
+  };
+
+  const copySQLToClipboard = () => {
+    const sql = db.getSQLSetupInstructions();
+    navigator.clipboard.writeText(sql);
+    alert("✅ تم نسخ كود SQL! الصقه في Supabase SQL Editor");
   };
 
   // --- Handlers for Fields ---
@@ -559,50 +600,132 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                {!isConnected ? (
                  <div className="space-y-4">
                     <p className="text-sm text-slate-600 leading-relaxed bg-blue-50 p-4 rounded-lg border border-blue-100">
-                      <strong>كيفية تفعيل المزامنة الفورية:</strong><br/>
-                      1. سجل حساب في <a href="https://supabase.com" target="_blank" className="text-blue-600 font-bold underline">Supabase.com</a> (مجاني).<br/>
-                      2. أنشئ مشروع جديد (New Project).<br/>
-                      3. انسخ الرابط (Project URL) والمفتاح (Anon Key) وضعهم هنا.<br/>
+                      <strong>📋 خطوات الإعداد:</strong><br/>
+                      1️⃣ سجل حساب في <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold underline">Supabase.com</a> (مجاني)<br/>
+                      2️⃣ أنشئ مشروع جديد (New Project)<br/>
+                      3️⃣ انسخ الرابط (Project URL) والمفتاح (Anon Key)<br/>
+                      4️⃣ اذهب إلى SQL Editor وشغّل الكود أدناه<br/>
                     </p>
+
+                    {/* SQL Setup Instructions */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <h4 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
+                        <Database className="w-4 h-4" />
+                        خطوة مهمة: تشغيل SQL في Supabase
+                      </h4>
+                      <p className="text-sm text-amber-800 mb-3">
+                        قبل الاتصال، يجب تشغيل هذا الكود في <strong>SQL Editor</strong> في Supabase:
+                      </p>
+                      <div className="bg-slate-900 text-green-400 p-3 rounded font-mono text-xs overflow-x-auto relative">
+                        <pre className="whitespace-pre-wrap">{db.getSQLSetupInstructions()}</pre>
+                        <button 
+                          onClick={copySQLToClipboard}
+                          className="absolute top-2 left-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded text-xs"
+                        >
+                          📋 نسخ
+                        </button>
+                      </div>
+                    </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Project URL</label>
-                        <input className="w-full border p-2 rounded bg-slate-50 font-mono text-sm" value={dbConfig.url} onChange={e => setDbConfig({...dbConfig, url: e.target.value})} placeholder="https://xyz.supabase.co" />
+                        <input 
+                          className="w-full border p-2 rounded bg-slate-50 font-mono text-sm" 
+                          value={dbConfig.url} 
+                          onChange={e => setDbConfig({...dbConfig, url: e.target.value})} 
+                          placeholder="https://xyz.supabase.co" 
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">API Key (Anon/Public)</label>
-                        <input className="w-full border p-2 rounded bg-slate-50 font-mono text-sm" type="password" value={dbConfig.key} onChange={e => setDbConfig({...dbConfig, key: e.target.value})} placeholder="eyJhbG..." />
+                        <input 
+                          className="w-full border p-2 rounded bg-slate-50 font-mono text-sm" 
+                          type="password" 
+                          value={dbConfig.key} 
+                          onChange={e => setDbConfig({...dbConfig, key: e.target.value})} 
+                          placeholder="eyJhbG..." 
+                        />
                       </div>
                     </div>
 
-                    <button onClick={handleConnectDb} className="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-900 transition mt-2">
-                       اتصال وحفظ الإعدادات
-                    </button>
+                    {connectionTestResult && (
+                      <div className={`p-3 rounded-lg border ${connectionTestResult.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                        <p className="text-sm font-bold">
+                          {connectionTestResult.success ? '✅ ' : '❌ '}
+                          {connectionTestResult.message}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={handleTestConnection} 
+                        disabled={testingConnection}
+                        className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                      >
+                        {testingConnection ? '⏳ جاري الاختبار...' : '🔍 اختبار الاتصال'}
+                      </button>
+                      <button 
+                        onClick={handleConnectDb} 
+                        className="flex-1 bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-900 transition"
+                      >
+                        💾 حفظ والاتصال
+                      </button>
+                    </div>
                  </div>
                ) : (
                  <div className="space-y-6">
                     <div className="flex items-center gap-3 text-green-700 bg-green-50 p-3 rounded-lg border border-green-100">
                        <Database className="w-5 h-5"/>
-                       <span className="font-bold text-sm">أنت متصل الآن بالسحابة! أي تغيير سيتم حفظه ومشاركته تلقائياً.</span>
+                       <span className="font-bold text-sm">✅ أنت متصل الآن بالسحابة! أي تغيير سيتم حفظه ومشاركته تلقائياً.</span>
                     </div>
 
-                    <div>
-                      <h4 className="font-bold text-slate-800 mb-2 text-sm">خطوة واحدة أخيرة (مهم جداً):</h4>
-                      <p className="text-sm text-slate-500 mb-2">اذهب إلى لوحة تحكم Supabase، ثم إلى <strong>SQL Editor</strong>، والصق الكود التالي واضغط Run:</p>
-                      <div className="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-xs relative group">
-                        <code>
-                          create table if not exists app_data (
-                            id int primary key,
-                            payload jsonb
-                          );
-                          insert into app_data (id, payload) values (1, '&#123;&#125;') on conflict do nothing;
-                        </code>
+                    <div className="bg-slate-50 p-4 rounded-lg border">
+                      <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        معلومات الاتصال
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Project URL:</span>
+                          <span className="font-mono text-xs text-slate-800">{dbConfig.url || 'متصل'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">الحالة:</span>
+                          <span className="text-green-600 font-bold">🟢 متصل</span>
+                        </div>
                       </div>
                     </div>
 
-                    <button onClick={handleDisconnectDb} className="text-red-500 hover:text-red-700 text-sm font-bold underline">
-                       قطع الاتصال (إيقاف المزامنة)
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={async () => {
+                          await db.pushToCloud();
+                          alert('✅ تم رفع البيانات للسحابة بنجاح!');
+                        }}
+                        className="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition text-sm"
+                      >
+                        ☁️ رفع البيانات الآن
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          const success = await db.pullFromCloud();
+                          if (success) {
+                            onDataImported();
+                            alert('✅ تم تحديث البيانات من السحابة!');
+                          } else {
+                            alert('⚠️ لا توجد بيانات في السحابة');
+                          }
+                        }}
+                        className="flex-1 bg-slate-600 text-white font-bold py-2.5 rounded-lg hover:bg-slate-700 transition text-sm"
+                      >
+                        📥 تحديث من السحابة
+                      </button>
+                    </div>
+
+                    <button onClick={handleDisconnectDb} className="w-full text-red-500 hover:bg-red-50 py-2 rounded-lg text-sm font-bold transition">
+                       🔌 قطع الاتصال (إيقاف المزامنة)
                     </button>
                  </div>
                )}

@@ -170,10 +170,80 @@ class DatabaseService {
         .upsert({ id: 1, payload: payload }, { onConflict: 'id' });
 
       if (error) throw error;
-      console.log("Data synced to cloud successfully");
+      console.log("✅ Data synced to cloud successfully");
     } catch (e: any) {
-      console.error("Cloud sync push failed:", e.message);
+      console.error("❌ Cloud sync push failed:", e.message);
+      throw e; // Re-throw to handle in UI
     }
+  }
+
+  // Test connection and table existence
+  async testConnection(): Promise<{ success: boolean; message: string }> {
+    if (!this.supabase || !this.isConnected) {
+      return { success: false, message: 'Not connected to database' };
+    }
+
+    try {
+      // Try to read from the table
+      const { data, error } = await this.supabase
+        .from('app_data')
+        .select('id')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (error) {
+        // Check if it's a "table doesn't exist" error
+        if (error.message.includes('relation') && error.message.includes('does not exist')) {
+          return { 
+            success: false, 
+            message: 'Table "app_data" does not exist. Please run the SQL setup script.' 
+          };
+        }
+        return { success: false, message: error.message };
+      }
+
+      // If no data exists, try to insert initial data
+      if (!data) {
+        const { error: insertError } = await this.supabase
+          .from('app_data')
+          .insert({ 
+            id: 1, 
+            payload: { 
+              fields: this.getFields(), 
+              models: this.getModels(), 
+              last_updated: new Date().toISOString() 
+            } 
+          });
+
+        if (insertError) {
+          return { success: false, message: insertError.message };
+        }
+      }
+
+      return { success: true, message: 'Connection successful!' };
+    } catch (e: any) {
+      return { success: false, message: e.message };
+    }
+  }
+
+  // Get SQL setup instructions
+  getSQLSetupInstructions(): string {
+    return `-- Run this SQL in Supabase SQL Editor:
+
+CREATE TABLE IF NOT EXISTS app_data (
+  id INTEGER PRIMARY KEY,
+  payload JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE app_data ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow all access" ON app_data FOR ALL USING (true) WITH CHECK (true);
+
+INSERT INTO app_data (id, payload) 
+VALUES (1, '{"fields": [], "models": []}'::jsonb)
+ON CONFLICT (id) DO NOTHING;`;
   }
 }
 
