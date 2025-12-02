@@ -142,11 +142,11 @@ export default function App() {
             {/* Hero / Search */}
             <div className="text-center mb-16 animate-fade-in-up">
               <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
-                اعثر على التلفزيون <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">الأمثل لاحتياجاتك</span>
+                tv comparison<br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">The Best TV</span>
               </h1>
               <p className="text-lg md:text-xl text-slate-500 mb-10 max-w-2xl mx-auto px-4 font-medium">
-                قارن بين أفضل الشاشات في السوق، واكتشف الفروقات الدقيقة في الأداء والمواصفات.
+              
               </p>
               
               <div className="max-w-xl mx-auto relative group">
@@ -155,7 +155,7 @@ export default function App() {
                   <Search className="w-6 h-6 text-slate-400 mr-3 ml-2" />
                   <input 
                     type="text" 
-                    placeholder="ابحث عن موديل (مثلاً: Sony A80L)..." 
+                    placeholder="ابحث عن موديل (مثلاً: Samsung S95F)..." 
                     className="flex-1 p-3 bg-transparent border-none outline-none text-slate-700 placeholder:text-slate-400 text-lg h-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
