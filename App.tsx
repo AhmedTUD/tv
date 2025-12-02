@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { ComparisonField, TVModel, ViewMode } from './types';
 import { ComparisonView } from './components/ComparisonView';
 import { AdminPanel } from './components/AdminPanel';
-import { ShieldCheck, Scale, Plus, Trash, Tv, Search, Cloud, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Scale, Plus, Trash, Tv, Search, RefreshCw } from 'lucide-react';
 import { ZoomableImage } from './components/ImageLightbox';
 import { db } from './services/db';
+import { useTranslation } from './i18n/useTranslation';
+import { LanguageSwitcher } from './components/LanguageSwitcher';
 
 export default function App() {
+  const { t, language, setLanguage, isRTL } = useTranslation();
   const [view, setView] = useState<ViewMode>('home');
   const [isLoading, setIsLoading] = useState(true);
   
@@ -51,7 +54,7 @@ export default function App() {
   const handleRestoreComplete = () => {
     setFields(db.getFields());
     setModels(db.getModels());
-    alert("تم تحديث البيانات بنجاح!");
+    alert(t('dataUpdated'));
   };
 
   const toggleModelSelection = (id: string) => {
@@ -59,7 +62,7 @@ export default function App() {
       setSelectedModelIds(prev => prev.filter(mid => mid !== id));
     } else {
       if (selectedModelIds.length >= 4) {
-        alert("يمكنك مقارنة 4 موديلات كحد أقصى.");
+        alert(t('maxModelsReached'));
         return;
       }
       setSelectedModelIds(prev => [...prev, id]);
@@ -78,7 +81,7 @@ export default function App() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
           <RefreshCw className="w-10 h-10 text-blue-600 animate-spin" />
-          <p className="text-slate-500 font-medium">جاري تحميل البيانات...</p>
+          <p className="text-slate-500 font-medium">{t('loading')}</p>
         </div>
       </div>
     );
@@ -95,19 +98,20 @@ export default function App() {
             </div>
             <div className="flex flex-col">
               <span className="font-black text-xl tracking-tight text-slate-800 leading-none">
-                TV Compare
+                {t('appName')}
               </span>
-              <span className="text-xs font-bold text-blue-600 tracking-widest uppercase">Pro</span>
+              <span className="text-xs font-bold text-blue-600 tracking-widest uppercase">{t('appSubtitle')}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
+            <LanguageSwitcher currentLanguage={language} onLanguageChange={setLanguage} />
             <button 
               onClick={() => setView('admin')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${view === 'admin' ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}
             >
               <ShieldCheck className="w-4 h-4" />
-              <span className="hidden md:inline">لوحة التحكم</span>
+              <span className="hidden md:inline">{t('adminPanel')}</span>
             </button>
           </div>
         </div>
@@ -142,20 +146,20 @@ export default function App() {
             {/* Hero / Search */}
             <div className="text-center mb-16 animate-fade-in-up">
               <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
-                tv comparison<br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">The Best TV</span>
+                {t('heroTitle')}<br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">{t('heroSubtitle')}</span>
               </h1>
               <p className="text-lg md:text-xl text-slate-500 mb-10 max-w-2xl mx-auto px-4 font-medium">
-              
+                {t('heroDescription')}
               </p>
               
               <div className="max-w-xl mx-auto relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
-                <div className="relative bg-white rounded-full shadow-xl flex items-center p-2 border border-slate-100">
-                  <Search className="w-6 h-6 text-slate-400 mr-3 ml-2" />
+                <div className={`relative bg-white rounded-full shadow-xl flex items-center p-2 border border-slate-100 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <Search className={`w-6 h-6 text-slate-400 ${isRTL ? 'ml-3 mr-2' : 'mr-3 ml-2'}`} />
                   <input 
                     type="text" 
-                    placeholder="ابحث عن موديل (مثلاً: Samsung S95F)..." 
+                    placeholder={t('searchPlaceholder')}
                     className="flex-1 p-3 bg-transparent border-none outline-none text-slate-700 placeholder:text-slate-400 text-lg h-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -206,11 +210,11 @@ export default function App() {
                         >
                           {isSelected ? (
                             <>
-                              <Trash className="w-4 h-4" /> إزالة من المقارنة
+                              <Trash className="w-4 h-4" /> {t('removeFromCompare')}
                             </>
                           ) : (
                             <>
-                              <Plus className="w-4 h-4" /> إضافة للمقارنة
+                              <Plus className="w-4 h-4" /> {t('addToCompare')}
                             </>
                           )}
                         </button>
@@ -226,8 +230,8 @@ export default function App() {
                 <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Search className="w-8 h-8 text-slate-400" />
                 </div>
-                <p className="text-slate-500 text-lg">لا توجد موديلات تطابق بحثك.</p>
-                <button onClick={() => setSearchTerm('')} className="text-blue-600 font-bold mt-2 hover:underline">عرض كل الموديلات</button>
+                <p className="text-slate-500 text-lg">{t('noModelsFound')}</p>
+                <button onClick={() => setSearchTerm('')} className="text-blue-600 font-bold mt-2 hover:underline">{t('showAllModels')}</button>
               </div>
             )}
           </div>
@@ -249,8 +253,8 @@ export default function App() {
                   ))}
                 </div>
                 <div className="hidden sm:block">
-                  <div className="text-xs font-medium text-slate-400">تم اختيار</div>
-                  <div className="text-base font-bold text-white">{selectedModelIds.length} موديلات</div>
+                  <div className="text-xs font-medium text-slate-400">{t('modelsSelected')}</div>
+                  <div className="text-base font-bold text-white">{selectedModelIds.length} {t('models')}</div>
                 </div>
               </div>
               
@@ -259,7 +263,7 @@ export default function App() {
                   onClick={() => setSelectedModelIds([])}
                   className="px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition font-medium text-sm"
                 >
-                  مسح
+                  {t('clear')}
                 </button>
                 <button 
                   onClick={() => {
@@ -274,7 +278,7 @@ export default function App() {
                   }`}
                 >
                   <Scale className="w-4 h-4" />
-                  مقارنة
+                  {t('compare')}
                 </button>
               </div>
             </div>
