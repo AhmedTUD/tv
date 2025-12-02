@@ -25,55 +25,50 @@ export default function App() {
     const initData = async () => {
       setIsLoading(true);
       
-      // 1. Load local data first
-      setFields(db.getFields());
-      setModels(db.getModels());
+      // Load data from cloud (or local fallback)
+      const loadedFields = await db.getFields();
+      const loadedModels = await db.getModels();
       
-      // 2. Try to pull latest from cloud if connected
-      if (db.getIsConnected()) {
-        const synced = await db.pullFromCloud();
-        if (synced) {
-          // Reload data after cloud sync
-          setFields(db.getFields());
-          setModels(db.getModels());
-          console.log('✅ Data synced from cloud');
-        }
-      }
+      setFields(loadedFields);
+      setModels(loadedModels);
       
       setIsLoading(false);
     };
 
     initData();
 
-    // Auto-sync every 30 seconds if connected
-    const syncInterval = setInterval(async () => {
-      if (db.getIsConnected() && !isLoading) {
-        const synced = await db.pullFromCloud();
-        if (synced) {
-          setFields(db.getFields());
-          setModels(db.getModels());
-          console.log('🔄 Auto-synced from cloud');
-        }
-      }
-    }, 30000); // 30 seconds
+    // Subscribe to real-time changes
+    const channel = db.subscribeToChanges(async () => {
+      console.log('🔄 Real-time update detected, reloading data...');
+      const loadedFields = await db.getFields();
+      const loadedModels = await db.getModels();
+      setFields(loadedFields);
+      setModels(loadedModels);
+    });
 
-    return () => clearInterval(syncInterval);
+    return () => {
+      if (channel) {
+        channel.unsubscribe();
+      }
+    };
   }, []);
 
   // Wrappers to update state AND database
-  const handleUpdateFields = (newFields: ComparisonField[]) => {
+  const handleUpdateFields = async (newFields: ComparisonField[]) => {
     setFields(newFields);
-    db.saveFields(newFields);
+    await db.saveFields(newFields);
   };
 
-  const handleUpdateModels = (newModels: TVModel[]) => {
+  const handleUpdateModels = async (newModels: TVModel[]) => {
     setModels(newModels);
-    db.saveModels(newModels);
+    await db.saveModels(newModels);
   };
 
-  const handleRestoreComplete = () => {
-    setFields(db.getFields());
-    setModels(db.getModels());
+  const handleRestoreComplete = async () => {
+    const loadedFields = await db.getFields();
+    const loadedModels = await db.getModels();
+    setFields(loadedFields);
+    setModels(loadedModels);
     alert(t('dataUpdated'));
   };
 
@@ -128,14 +123,13 @@ export default function App() {
             {db.getIsConnected() && (
               <button 
                 onClick={async () => {
-                  const synced = await db.pullFromCloud();
-                  if (synced) {
-                    setFields(db.getFields());
-                    setModels(db.getModels());
-                    alert('✅ ' + t('dataUpdatedFromCloud'));
-                  } else {
-                    alert('⚠️ ' + t('noDataInCloud'));
-                  }
+                  setIsLoading(true);
+                  const loadedFields = await db.getFields();
+                  const loadedModels = await db.getModels();
+                  setFields(loadedFields);
+                  setModels(loadedModels);
+                  setIsLoading(false);
+                  alert('✅ ' + t('dataUpdatedFromCloud'));
                 }}
                 className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-bold transition-all duration-300 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                 title={t('updateFromCloud')}

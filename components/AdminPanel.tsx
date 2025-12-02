@@ -727,12 +727,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                       </button>
                       <button 
                         onClick={async () => {
-                          const success = await db.pullFromCloud();
-                          if (success) {
+                          try {
                             onDataImported();
                             alert('✅ تم تحديث البيانات من السحابة!');
-                          } else {
-                            alert('⚠️ لا توجد بيانات في السحابة');
+                          } catch (e) {
+                            alert('⚠️ فشل التحديث من السحابة');
                           }
                         }}
                         className="flex-1 bg-slate-600 text-white font-bold py-2.5 rounded-lg hover:bg-slate-700 transition text-sm"

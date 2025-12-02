@@ -75,106 +75,114 @@ class DatabaseService {
     return this.isConnected;
   }
 
-  // --- Data Access (Hybrid: Local First, then Cloud) ---
+  // --- Data Access (Direct from Cloud or Local Fallback) ---
 
-  getFields(): ComparisonField[] {
+  async getFields(): Promise<ComparisonField[]> {
+    // If connected, get from cloud
+    if (this.isConnected && this.supabase) {
+      try {
+        const { data, error } = await this.supabase
+          .from('app_data')
+          .select('payload')
+          .eq('id', 1)
+          .single();
+
+        if (!error && data?.payload?.fields) {
+          // Cache locally as backup
+          localStorage.setItem(FIELDS_KEY, JSON.stringify(data.payload.fields));
+          return data.payload.fields;
+        }
+      } catch (e) {
+        console.warn('Failed to fetch from cloud, using local cache');
+      }
+    }
+
+    // Fallback to local
     const local = localStorage.getItem(FIELDS_KEY);
     if (local) {
       return JSON.parse(local);
     }
-    // Initialize with default data if not exists
+    
+    // Initialize with defaults
     localStorage.setItem(FIELDS_KEY, JSON.stringify(INITIAL_FIELDS));
     return INITIAL_FIELDS;
   }
 
-  getModels(): TVModel[] {
+  async getModels(): Promise<TVModel[]> {
+    // If connected, get from cloud
+    if (this.isConnected && this.supabase) {
+      try {
+        const { data, error } = await this.supabase
+          .from('app_data')
+          .select('payload')
+          .eq('id', 1)
+          .single();
+
+        if (!error && data?.payload?.models) {
+          // Cache locally as backup
+          localStorage.setItem(MODELS_KEY, JSON.stringify(data.payload.models));
+          return data.payload.models;
+        }
+      } catch (e) {
+        console.warn('Failed to fetch from cloud, using local cache');
+      }
+    }
+
+    // Fallback to local
     const local = localStorage.getItem(MODELS_KEY);
     if (local) {
       return JSON.parse(local);
     }
-    // Initialize with default data if not exists
+    
+    // Initialize with defaults
     localStorage.setItem(MODELS_KEY, JSON.stringify(INITIAL_MODELS));
     return INITIAL_MODELS;
   }
 
-  // --- Saving (Syncs to Cloud if connected) ---
+  // --- Saving (Direct to Cloud) ---
 
   async saveFields(fields: ComparisonField[]): Promise<void> {
-    // 1. Save Local (Instant)
+    // Save to local as backup
     localStorage.setItem(FIELDS_KEY, JSON.stringify(fields));
     
-    // 2. Sync to Cloud
+    // Save to cloud immediately
     if (this.isConnected) {
-      await this.pushToCloud();
+      await this.pushToCloud(fields, null);
     }
   }
 
   async saveModels(models: TVModel[]): Promise<void> {
-    // 1. Save Local (Instant)
+    // Save to local as backup
     localStorage.setItem(MODELS_KEY, JSON.stringify(models));
 
-    // 2. Sync to Cloud
+    // Save to cloud immediately
     if (this.isConnected) {
-      await this.pushToCloud();
+      await this.pushToCloud(null, models);
     }
   }
 
-  // --- Cloud Synchronization Logic (Single Row Approach) ---
 
-  async pullFromCloud(): Promise<boolean> {
-    if (!this.supabase || !this.isConnected) return false;
+
+  async pushToCloud(fields?: ComparisonField[] | null, models?: TVModel[] | null): Promise<void> {
+    if (!this.supabase || !this.isConnected) return;
 
     try {
-      // Fetch the single JSON blob from 'app_data' table, row ID 1
-      const { data, error } = await this.supabase
+      // Get current data from cloud first
+      const { data: currentData } = await this.supabase
         .from('app_data')
-        .select('payload, updated_at')
+        .select('payload')
         .eq('id', 1)
         .single();
 
-      if (error) {
-        // Only log if it's not a "row not found" error which is expected on first run
-        if (error.code !== 'PGRST116') {
-             console.warn("Cloud fetch error:", error.message);
-        }
-        return false;
-      }
+      const currentPayload = currentData?.payload || {};
 
-      if (data && data.payload) {
-        const cloudData = data.payload;
-        
-        // Check if cloud data is newer than local
-        const lastSync = localStorage.getItem('last_sync_time');
-        const cloudTime = data.updated_at || cloudData.last_updated;
-        
-        if (!lastSync || (cloudTime && new Date(cloudTime) > new Date(lastSync))) {
-          // Update local storage if cloud data exists and is newer
-          if (cloudData.fields) localStorage.setItem(FIELDS_KEY, JSON.stringify(cloudData.fields));
-          if (cloudData.models) localStorage.setItem(MODELS_KEY, JSON.stringify(cloudData.models));
-          localStorage.setItem('last_sync_time', new Date().toISOString());
-          console.log('📥 Pulled newer data from cloud');
-          return true;
-        } else {
-          console.log('✓ Local data is up to date');
-          return false;
-        }
-      }
-    } catch (e) {
-      console.error("Sync pull failed", e);
-    }
-    return false;
-  }
+      // Merge with new data
+      const payload = {
+        fields: fields !== null ? fields : (currentPayload.fields || await this.getFields()),
+        models: models !== null ? models : (currentPayload.models || await this.getModels()),
+        last_updated: new Date().toISOString()
+      };
 
-  async pushToCloud(): Promise<void> {
-    if (!this.supabase || !this.isConnected) return;
-
-    const payload = {
-      fields: this.getFields(),
-      models: this.getModels(),
-      last_updated: new Date().toISOString()
-    };
-
-    try {
       // Upsert the single row
       const { error } = await this.supabase
         .from('app_data')
@@ -189,6 +197,30 @@ class DatabaseService {
       console.error("❌ Cloud sync push failed:", e.message);
       throw e; // Re-throw to handle in UI
     }
+  }
+
+  // Subscribe to real-time changes
+  subscribeToChanges(callback: () => void) {
+    if (!this.supabase || !this.isConnected) return null;
+
+    const channel = this.supabase
+      .channel('app_data_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'app_data',
+          filter: 'id=eq.1'
+        },
+        (payload) => {
+          console.log('🔔 Real-time update received:', payload);
+          callback();
+        }
+      )
+      .subscribe();
+
+    return channel;
   }
 
   // Test connection and table existence
