@@ -169,7 +169,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
                         return (
                           <td key={`${model.id}-${field.id}`} className={`p-4 text-center border-l border-slate-50 relative transition-colors duration-300 ${isBest ? 'bg-emerald-50/40' : 'group-hover:bg-slate-50/50'}`}>
                             {isBest && (
-                              <div className="absolute top-1 left-0 right-0 flex justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+                              <div className="absolute top-1 left-0 right-0 flex justify-center opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
                                 <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-1 font-bold shadow-sm">
                                   <Award className="w-3 h-3" /> {t('best')}
                                 </span>
