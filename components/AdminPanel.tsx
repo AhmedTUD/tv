@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ComparisonField, TVModel, FieldType, ComparisonRule } from '../types';
 import { Plus, Trash2, Edit2, Save, X, GripVertical, CheckCircle, Lock, Key, LogOut, Settings, ShieldAlert, Image as ImageIcon, Link as LinkIcon, Upload, Download, Cloud, Database } from 'lucide-react';
 import { db } from '../services/db';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface AdminPanelProps {
   fields: ComparisonField[];
@@ -16,6 +17,8 @@ const STORAGE_KEY_PWD = 'tv_compare_admin_pwd';
 const STORAGE_KEY_SESSION = 'tv_compare_admin_session';
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdateFields, onUpdateModels, onDataImported }) => {
+  const { t } = useTranslation();
+  
   // Auth State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
@@ -54,7 +57,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
       setLoginError('');
       setPasswordInput('');
     } else {
-      setLoginError('كلمة المرور غير صحيحة');
+      setLoginError(t('incorrectPassword'));
     }
   };
 
@@ -228,8 +231,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
           <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
             <Lock className="w-8 h-8 text-blue-600" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">تسجيل دخول المسؤول</h2>
-          <p className="text-slate-500 mb-8">الرجاء إدخال كلمة المرور للوصول للوحة التحكم</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">{t('adminLogin')}</h2>
+          <p className="text-slate-500 mb-8">{t('enterPassword')}</p>
           
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="relative">
@@ -237,7 +240,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                 type="password" 
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="كلمة المرور..."
+                placeholder={t('password')}
                 className="w-full pl-4 pr-10 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition"
               />
               <Key className="w-5 h-5 text-slate-400 absolute left-3 top-3.5" />
@@ -250,7 +253,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
             )}
             
             <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-blue-200">
-              دخول
+              {t('login')}
             </button>
           </form>
         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ComparisonField, TVModel } from '../types';
 import { Check, X, Star, Zap, Award, ArrowRight, Table2, List, Sparkles } from 'lucide-react';
 import { ZoomableImage } from './ImageLightbox';
+import { useTranslation } from '../i18n/useTranslation';
 
 interface ComparisonViewProps {
   models: TVModel[];
@@ -16,6 +17,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   onBack,
   onRemoveModel
 }) => {
+  const { t } = useTranslation();
   const [layout, setLayout] = useState<'horizontal' | 'vertical'>('horizontal');
 
   // Set default layout based on screen size
@@ -89,7 +91,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
           <div className="bg-white p-2 rounded-full ml-3 shadow-sm group-hover:bg-blue-100 transition-colors">
             <ArrowRight className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
           </div>
-          العودة للقائمة الرئيسية
+          {t('backToMain')}
         </button>
 
         <div className="flex gap-3 w-full sm:w-auto">
@@ -98,7 +100,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
             className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 hover:border-blue-300 transition-all text-sm w-full sm:w-auto font-medium"
           >
             {layout === 'horizontal' ? <List className="w-4 h-4" /> : <Table2 className="w-4 h-4" />}
-            {layout === 'horizontal' ? 'عرض بطاقات (موبايل)' : 'عرض جدول كامل'}
+            {layout === 'horizontal' ? t('cardView') : t('tableView')}
           </button>
         </div>
       </div>
@@ -115,7 +117,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
                   <th className="p-4 w-48 md:w-64 bg-slate-50/95 backdrop-blur text-right sticky top-[80px] right-0 z-40 border-b border-slate-200 shadow-[2px_2px_10px_-2px_rgba(0,0,0,0.05)]">
                     <div className="flex items-center gap-2 text-slate-500 font-medium">
                       <Sparkles className="w-4 h-4 text-blue-500" />
-                      المواصفات
+                      {t('specifications')}
                     </div>
                   </th>
                   
@@ -125,7 +127,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
                       <button 
                         onClick={() => onRemoveModel(model.id)}
                         className="absolute top-2 left-2 p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 transform hover:scale-110"
-                        title="إزالة من المقارنة"
+                        title={t('removeFromComparison')}
                       >
                         <X className="w-5 h-5" />
                       </button>
@@ -169,7 +171,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
                             {isBest && (
                               <div className="absolute top-1 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
                                 <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded-full flex items-center gap-1 font-bold shadow-sm">
-                                  <Award className="w-3 h-3" /> الأفضل
+                                  <Award className="w-3 h-3" /> {t('best')}
                                 </span>
                               </div>
                             )}

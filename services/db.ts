@@ -79,12 +79,22 @@ class DatabaseService {
 
   getFields(): ComparisonField[] {
     const local = localStorage.getItem(FIELDS_KEY);
-    return local ? JSON.parse(local) : INITIAL_FIELDS;
+    if (local) {
+      return JSON.parse(local);
+    }
+    // Initialize with default data if not exists
+    localStorage.setItem(FIELDS_KEY, JSON.stringify(INITIAL_FIELDS));
+    return INITIAL_FIELDS;
   }
 
   getModels(): TVModel[] {
     const local = localStorage.getItem(MODELS_KEY);
-    return local ? JSON.parse(local) : INITIAL_MODELS;
+    if (local) {
+      return JSON.parse(local);
+    }
+    // Initialize with default data if not exists
+    localStorage.setItem(MODELS_KEY, JSON.stringify(INITIAL_MODELS));
+    return INITIAL_MODELS;
   }
 
   // --- Saving (Syncs to Cloud if connected) ---
