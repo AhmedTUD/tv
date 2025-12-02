@@ -17,12 +17,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1GP6cwKiCDNJksQUHOrv2zW
    npm install
    ```
 
-2. إضافة مفتاح Gemini API في ملف [.env.local](.env.local):
-   ```
-   GEMINI_API_KEY=your_api_key_here
-   ```
-
-3. تشغيل التطبيق:
+2. تشغيل التطبيق:
    ```bash
    npm run dev
    ```
@@ -44,13 +39,11 @@ View your app in AI Studio: https://ai.studio/apps/drive/1GP6cwKiCDNJksQUHOrv2zW
    ```bash
    vercel
    ```
-5. أضف متغير البيئة `GEMINI_API_KEY` في لوحة تحكم Vercel
 
 **أو استخدم واجهة Vercel:**
 - ارفع المشروع على GitHub
 - اذهب إلى [vercel.com/new](https://vercel.com/new)
-- اختر المستودع وانشره
-- أضف `GEMINI_API_KEY` في إعدادات المشروع
+- اختر المستودع وانشره مباشرة
 
 ### الطريقة 2: النشر على Netlify
 
@@ -62,7 +55,6 @@ View your app in AI Studio: https://ai.studio/apps/drive/1GP6cwKiCDNJksQUHOrv2zW
    netlify login
    netlify deploy --prod
    ```
-4. أضف `GEMINI_API_KEY` في إعدادات البيئة
 
 ### الطريقة 3: النشر اليدوي
 
@@ -72,16 +64,10 @@ View your app in AI Studio: https://ai.studio/apps/drive/1GP6cwKiCDNJksQUHOrv2zW
    ```
 2. ارفع محتويات مجلد `dist` على أي استضافة ويب
 
-## 🔑 المتغيرات البيئية المطلوبة
-
-- `GEMINI_API_KEY`: مفتاح API من Google AI Studio
-- متغيرات Supabase (إذا كنت تستخدمها)
-
-## 🛠️ التقنيات المستخدمة
+## �️ املتقنيات المستخدمة
 
 - React 19
 - TypeScript
 - Vite
-- Gemini AI
 - Supabase
 - Lucide Icons
