@@ -312,19 +312,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
             onClick={() => setActiveTab('models')}
             className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap text-sm flex items-center gap-2 ${activeTab === 'models' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
           >
-             الموديلات ({models.length})
+             {t('models')} ({models.length})
           </button>
           <button 
             onClick={() => setActiveTab('fields')}
             className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap text-sm flex items-center gap-2 ${activeTab === 'fields' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
           >
-             الخصائص ({fields.length})
+             {t('fields')} ({fields.length})
           </button>
           <button 
             onClick={() => setActiveTab('settings')}
             className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap text-sm flex items-center gap-2 ${activeTab === 'settings' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
           >
-             <Settings className="w-4 h-4" /> الإعدادات وقاعدة البيانات
+             <Settings className="w-4 h-4" /> {t('settings')}
           </button>
         </div>
 
@@ -342,9 +342,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
           {!editingModel ? (
             <div>
               <div className="flex flex-col sm:flex-row justify-between mb-4 gap-2">
-                 <h2 className="text-xl font-bold">قائمة الموديلات</h2>
+                 <h2 className="text-xl font-bold">{t('modelsList')}</h2>
                  <button onClick={() => setEditingModel({ specs: {} })} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto shadow-sm">
-                    <Plus className="w-4 h-4"/> إضافة موديل جديد
+                    <Plus className="w-4 h-4"/> {t('addNewModel')}
                  </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -354,7 +354,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                     <div className="min-w-0">
                       <div className="text-xs text-blue-600 font-bold">{model.brand}</div>
                       <div className="font-bold text-gray-900 truncate">{model.name}</div>
-                      <div className="text-xs text-gray-500 mt-1">{Object.keys(model.specs).length} خاصية مسجلة</div>
+                      <div className="text-xs text-gray-500 mt-1">{Object.keys(model.specs).length} {t('propertiesRegistered')}</div>
                     </div>
                     <div className="absolute top-2 left-2 flex gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition">
                       <button onClick={() => setEditingModel(model)} className="p-1.5 bg-white border rounded hover:text-blue-600 shadow-sm"><Edit2 className="w-4 h-4"/></button>
@@ -367,40 +367,40 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
           ) : (
             <div className="animate-fade-in">
               <div className="flex justify-between items-center mb-6 border-b pb-4">
-                 <h3 className="text-lg font-bold">بيانات الموديل</h3>
+                 <h3 className="text-lg font-bold">{t('modelData')}</h3>
                  <div className="flex gap-2">
-                    <button onClick={() => setEditingModel(null)} className="px-3 md:px-4 py-2 text-gray-600 hover:bg-gray-100 rounded text-sm md:text-base">إلغاء</button>
-                    <button onClick={saveModel} className="px-4 md:px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2 text-sm md:text-base"><Save className="w-4 h-4"/> حفظ</button>
+                    <button onClick={() => setEditingModel(null)} className="px-3 md:px-4 py-2 text-gray-600 hover:bg-gray-100 rounded text-sm md:text-base">{t('cancel')}</button>
+                    <button onClick={saveModel} className="px-4 md:px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2 text-sm md:text-base"><Save className="w-4 h-4"/> {t('save')}</button>
                  </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h4 className="font-bold text-gray-700 border-b pb-2">معلومات أساسية</h4>
+                  <h4 className="font-bold text-gray-700 border-b pb-2">{t('basicInfo')}</h4>
                   <div>
-                    <label className="block text-sm font-medium mb-1">اسم الموديل</label>
+                    <label className="block text-sm font-medium mb-1">{t('modelName')}</label>
                     <input type="text" value={editingModel.name || ''} onChange={e => setEditingModel({...editingModel, name: e.target.value})} className="w-full border p-2 rounded" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">الماركة (Brand)</label>
+                    <label className="block text-sm font-medium mb-1">{t('brand')}</label>
                     <input type="text" value={editingModel.brand || ''} onChange={e => setEditingModel({...editingModel, brand: e.target.value})} className="w-full border p-2 rounded" />
                   </div>
                    
                    {/* Image Upload Toggle */}
                    <div>
-                    <label className="block text-sm font-medium mb-2">صورة المنتج</label>
+                    <label className="block text-sm font-medium mb-2">{t('productImage')}</label>
                     <div className="flex gap-2 mb-2 p-1 bg-gray-100 rounded-lg w-fit">
                       <button 
                         onClick={() => setImageInputType('url')}
                         className={`px-3 py-1 rounded-md text-sm transition flex items-center gap-1 ${imageInputType === 'url' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
                       >
-                        <LinkIcon className="w-3 h-3"/> رابط
+                        <LinkIcon className="w-3 h-3"/> {t('urlLink')}
                       </button>
                       <button 
                         onClick={() => setImageInputType('file')}
                          className={`px-3 py-1 rounded-md text-sm transition flex items-center gap-1 ${imageInputType === 'file' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
                       >
-                         <Upload className="w-3 h-3"/> رفع ملف
+                         <Upload className="w-3 h-3"/> {t('uploadFile')}
                       </button>
                     </div>
 
@@ -422,7 +422,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                          />
                          <div className="flex flex-col items-center">
                             <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
-                            <span className="text-sm text-gray-500">اضغط لرفع صورة من جهازك</span>
+                            <span className="text-sm text-gray-500">{t('clickToUpload')}</span>
                          </div>
                       </div>
                     )}
@@ -436,7 +436,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-bold text-gray-700 border-b pb-2">الخصائص التقنية</h4>
+                  <h4 className="font-bold text-gray-700 border-b pb-2">{t('technicalSpecs')}</h4>
                   <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {fields.sort((a,b) => a.order - b.order).map(field => (
                       <div key={field.id} className="flex flex-col">
@@ -446,8 +446,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                          </label>
                          {field.type === 'boolean' ? (
                            <div className="flex gap-4">
-                             <label className="flex items-center gap-2"><input type="radio" name={field.id} checked={editingModel.specs?.[field.id] === true} onChange={() => updateModelSpec(field.id, true)} /> نعم</label>
-                             <label className="flex items-center gap-2"><input type="radio" name={field.id} checked={editingModel.specs?.[field.id] === false} onChange={() => updateModelSpec(field.id, false)} /> لا</label>
+                             <label className="flex items-center gap-2"><input type="radio" name={field.id} checked={editingModel.specs?.[field.id] === true} onChange={() => updateModelSpec(field.id, true)} /> {t('yes')}</label>
+                             <label className="flex items-center gap-2"><input type="radio" name={field.id} checked={editingModel.specs?.[field.id] === false} onChange={() => updateModelSpec(field.id, false)} /> {t('no')}</label>
                            </div>
                          ) : field.type === 'select' && field.options ? (
                            <select 
@@ -455,7 +455,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                              onChange={e => updateModelSpec(field.id, e.target.value)}
                              className="border p-2 rounded text-sm bg-white"
                            >
-                             <option value="">اختر...</option>
+                             <option value="">{t('choose')}</option>
                              {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                            </select>
                          ) : (
@@ -482,9 +482,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
             {!editingField ? (
               <div>
                 <div className="flex flex-col sm:flex-row justify-between mb-4 gap-2">
-                  <h2 className="text-xl font-bold">إدارة حقول المقارنة</h2>
+                  <h2 className="text-xl font-bold">{t('manageFields')}</h2>
                   <button onClick={() => setEditingField({})} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto shadow-sm">
-                      <Plus className="w-4 h-4"/> إضافة حقل جديد
+                      <Plus className="w-4 h-4"/> {t('addNewField')}
                   </button>
                 </div>
                 <div className="bg-white rounded-lg border overflow-x-auto">
@@ -519,64 +519,64 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
               </div>
             ) : (
               <div className="max-w-xl mx-auto animate-fade-in">
-                 <h3 className="text-lg font-bold mb-6">{editingField.id ? 'تعديل الحقل' : 'حقل جديد'}</h3>
+                 <h3 className="text-lg font-bold mb-6">{editingField.id ? t('editField') : t('newField')}</h3>
                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">اسم الخاصية (بالعربي)</label>
+                      <label className="block text-sm font-medium mb-1">{t('fieldName')}</label>
                       <input 
                         className="w-full border p-2 rounded" 
                         value={editingField.label || ''} 
                         onChange={e => handleFieldLabelChange(e.target.value)} 
-                        placeholder="مثلاً: سطوع الشاشة"
+                        placeholder={t('fieldName')}
                       />
                     </div>
                     
                     <div className="opacity-50">
-                       <label className="block text-xs font-medium mb-1">المعرف البرمجي (تلقائي)</label>
+                       <label className="block text-xs font-medium mb-1">{t('programmaticId')}</label>
                        <input className="w-full border p-2 rounded bg-gray-100 text-gray-500 font-mono text-xs" readOnly value={editingField.id || ''} />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                        <div>
-                         <label className="block text-sm font-medium mb-1">الوحدة (Unit)</label>
+                         <label className="block text-sm font-medium mb-1">{t('unit')}</label>
                          <input className="w-full border p-2 rounded" value={editingField.unit || ''} onChange={e => setEditingField({...editingField, unit: e.target.value})} placeholder="e.g. Hz, inch, nits" />
                        </div>
                        <div>
-                         <label className="block text-sm font-medium mb-1">نوع البيانات</label>
+                         <label className="block text-sm font-medium mb-1">{t('dataType')}</label>
                          <select className="w-full border p-2 rounded bg-white" value={editingField.type || 'text'} onChange={e => setEditingField({...editingField, type: e.target.value as FieldType})}>
-                           <option value="text">نص (Text)</option>
-                           <option value="number">رقم (Number)</option>
-                           <option value="boolean">نعم/لا (Boolean)</option>
-                           <option value="select">قائمة (Select)</option>
+                           <option value="text">{t('text')}</option>
+                           <option value="number">{t('number')}</option>
+                           <option value="boolean">{t('boolean')}</option>
+                           <option value="select">{t('select')}</option>
                          </select>
                        </div>
                     </div>
                     
                     <div>
-                        <label className="block text-sm font-medium mb-1">قاعدة التفضيل (من الأفضل؟)</label>
+                        <label className="block text-sm font-medium mb-1">{t('comparisonRule')}</label>
                         <select className="w-full border p-2 rounded bg-white" value={editingField.comparison_rule || 'none'} onChange={e => setEditingField({...editingField, comparison_rule: e.target.value as ComparisonRule})}>
-                           <option value="none">لا توجد قاعدة (عرض فقط)</option>
-                           <option value="higher_is_better">الرقم الأعلى هو الأفضل</option>
-                           <option value="lower_is_better">الرقم الأقل هو الأفضل</option>
-                           <option value="equal">المطابقة مطلوبة</option>
+                           <option value="none">{t('noRule')}</option>
+                           <option value="higher_is_better">{t('higherIsBetter')}</option>
+                           <option value="lower_is_better">{t('lowerIsBetter')}</option>
+                           <option value="equal">{t('equalRequired')}</option>
                         </select>
                     </div>
 
                     <div className="flex items-center gap-2 border p-3 rounded bg-gray-50">
                        <input type="checkbox" id="is_high" checked={editingField.is_highlightable || false} onChange={e => setEditingField({...editingField, is_highlightable: e.target.checked})} />
-                       <label htmlFor="is_high" className="text-sm select-none cursor-pointer">هل هذه خاصية مميزة (Featured)؟</label>
+                       <label htmlFor="is_high" className="text-sm select-none cursor-pointer">{t('isFeatured')}</label>
                     </div>
 
                     {editingField.type === 'select' && (
                        <div>
-                         <label className="block text-sm font-medium mb-1">الخيارات (افصل بفاصلة)</label>
+                         <label className="block text-sm font-medium mb-1">{t('options')} ({t('separateByComma')})</label>
                          <input className="w-full border p-2 rounded" value={editingField.options?.join(',') || ''} onChange={e => setEditingField({...editingField, options: e.target.value.split(',').map(s => s.trim())})} placeholder="Option 1, Option 2" />
                        </div>
                     )}
 
                     <div className="flex justify-end gap-3 mt-6">
-                       <button onClick={() => setEditingField(null)} className="px-4 py-2 rounded hover:bg-gray-100">إلغاء</button>
-                       <button onClick={saveField} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">حفظ التغييرات</button>
+                       <button onClick={() => setEditingField(null)} className="px-4 py-2 rounded hover:bg-gray-100">{t('cancel')}</button>
+                       <button onClick={saveField} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">{t('saveChanges')}</button>
                     </div>
                  </div>
               </div>
