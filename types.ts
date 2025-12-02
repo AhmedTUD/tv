@@ -22,6 +22,7 @@ export interface TVModel {
   images: string[];
   description?: string;
   specs: Record<string, any>; // Keyed by ComparisonField.id
+  manualBestFields?: string[]; // Array of field IDs marked as "best" manually
 }
 
 export interface AppData {

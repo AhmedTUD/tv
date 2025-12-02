@@ -30,6 +30,13 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   // --- Logic Helpers ---
 
   const getBestModelIdForField = (field: ComparisonField): string | null => {
+    // First check for manual "best" marking
+    const manualBest = models.find(model => 
+      model.manualBestFields?.includes(field.id)
+    );
+    if (manualBest) return manualBest.id;
+
+    // Fall back to automatic calculation
     if (field.comparison_rule === 'none' || field.comparison_rule === 'equal' || models.length < 2) return null;
 
     let bestId: string | null = null;

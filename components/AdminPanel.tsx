@@ -439,11 +439,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ fields, models, onUpdate
                   <h4 className="font-bold text-gray-700 border-b pb-2">{t('technicalSpecs')}</h4>
                   <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {fields.sort((a,b) => a.order - b.order).map(field => (
-                      <div key={field.id} className="flex flex-col">
-                         <label className="text-xs font-semibold text-gray-600 mb-1 flex justify-between">
-                            {field.label} 
-                            <span className="text-gray-400 font-normal">{field.unit}</span>
-                         </label>
+                      <div key={field.id} className="flex flex-col border-b border-gray-100 pb-3">
+                         <div className="flex items-center justify-between mb-1">
+                           <label className="text-xs font-semibold text-gray-600 flex items-center gap-2">
+                              {field.label}
+                              <span className="text-gray-400 font-normal">{field.unit}</span>
+                           </label>
+                           <label className="flex items-center gap-1 cursor-pointer group">
+                             <input 
+                               type="checkbox" 
+                               checked={editingModel.manualBestFields?.includes(field.id) || false}
+                               onChange={(e) => {
+                                 const current = editingModel.manualBestFields || [];
+                                 const updated = e.target.checked 
+                                   ? [...current, field.id]
+                                   : current.filter(id => id !== field.id);
+                                 setEditingModel({...editingModel, manualBestFields: updated});
+                               }}
+                               className="w-4 h-4 text-emerald-600 rounded"
+                             />
+                             <span className="text-[10px] text-emerald-600 font-bold group-hover:text-emerald-700">🏆 الأفضل</span>
+                           </label>
+                         </div>
                          {field.type === 'boolean' ? (
                            <div className="flex gap-4">
                              <label className="flex items-center gap-2"><input type="radio" name={field.id} checked={editingModel.specs?.[field.id] === true} onChange={() => updateModelSpec(field.id, true)} /> {t('yes')}</label>
